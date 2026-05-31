@@ -128,3 +128,67 @@ Duration: AUG 2023 - PRESENT
 
 ## Image Tagger | Gallery Search - Galaxy S25
 
+#### Raw Explanation
+
+**About the project:**
+
+- Just like Document Classifier, except for the fact that it is now a generic image classifier. For each image it will spit out multiple tags which the image appears to contain.
+- It currently supports around 2000 tags. This tag set has been designed by PMs based on user analysis.
+- It is a part of the overall Gallery Search Pipeline.
+- It is an essential part, since most of the searches in samsung mobiles (as per user-trial survey 2024-25) is single keyword based. For such cases, results from image tagger are sufficient.
+
+**What I did?**
+
+- Like document classifier, I helped deploy this project in Samsung Flagship devices.
+- I faced similar challenges of accuracy issues like document classifier.
+- The error used to get reported in this format: "A particular search result is not appearing", or maybe "A wrong result is appearing".
+- My task was to first narrow down the cause of the error in the entire pipeline. It can be a query parsing issue, or a database filling issue, or incorrect preprocessing of image, or improper post processing of model outputs, or ondevice accuracy drop, or model's innate incapability.
+- If its issue from my C++ pipeline, then I solved them.
+
+#### Refined Explanation
+
+1. [SDE] End-to-End Root Cause Analysis
+    - [Problem]
+      - User-reported issues were often high-level: "Image X is not appearing for query Y" or "This image should not appear for this query"
+      - The actual issue could originate from multiple independent components.
+    - [Solution]
+      - Built a systematic debugging process that validates each stage independently: query parsing, database population, indexing, image preprocessing, model inference, postprocessing.
+      - Isolated failures to the responsible subsystem before escalating or fixing.
+2. [SDE] Deployment Accuracy Regressions
+    - [Problem]
+      - Model quality observed on-device occasionally differed from evaluation results.
+    - [Solution]
+      - Compared intermediate outputs across environments.
+      - Verified preprocessing and postprocessing consistency.
+      - Added validation checks to identify deployment-specific discrepancies.
+3. [SDE] Cross-Team Investigation
+    - [Problem]
+      - Many failures spanned multiple teams and components.
+    - [Solution]
+      - Collected evidence from different pipeline stages.
+      - Narrowed ownership boundaries before escalation.
+      - Coordinated with search, indexing, and model teams.
+4. [ML] Understanding Search Quality Failures
+    - [Problem]
+      - A poor search result does not necessarily indicate a model failure.
+      - Potential causes included: preprocessing issues, indexing issues, retrieval issues, model limitations.
+    - [Solution]
+      - Performed error analysis across the entire pipeline.
+      - Distinguished model errors from system-level errors.
+      - Prevented unnecessary model retraining efforts.
+5. [ML] Training vs Deployment Consistency
+    - [Problem]
+      - Even small deployment differences can cause accuracy degradation.
+    - [Solution]
+      - Compared intermediate activations and outputs.
+      - Verified image preprocessing correctness.
+      - Ensured inference behavior matched reference environment.
+6. [ML] Multi-Label Classification Quality
+    - [Problem]
+      - Images often contain multiple valid concepts.
+      - Errors could arise from: missing tags, low-confidence predictions, postprocessing thresholds.
+    - [Solution]
+      - Investigated prediction distributions.
+      - Analyzed confidence thresholds.
+      - Evaluated downstream impact on retrieval quality
+
