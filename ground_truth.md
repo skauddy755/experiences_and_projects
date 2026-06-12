@@ -375,7 +375,101 @@ In Short, The hardest part was preserving behavior rather than implementing new 
 
 ## Smart Cropper | Gallery Search - Galaxy S26
 
+#### Raw Explanation
 
+**About the Project:**
+
+- Image cropper is a solution which is used by many downstream tasks. Like thumbnail generation, gallery story creation, etc.
+- Image Cropper was a project which was stopped almost 2 years ago, due to stable.
+- The original authors of the project had long left the team.
+- We got KT from second generation authors.
+- Neverthless, I documented everything that was taught.
+- After the project was reopened, it was asked to deploy the solution without relying on SNAP Layer, and secondly to run on CPU, but with reduced memory and inference timings, while maintaining the accuracy.
+- In Samsung devices, we have an internal SNAP Layer, which takes care of all model loading and model execution under the hood. We as solution owners need to take care of the overall signals that is being passed to the model (from image reading, to preprocessing, and then hadling postprocessing once snap returns the raw outputs).
+- However, due to some internal reorganization, we were asked to get rid of SNAP. This was a massive step, as it required significant architectural changes to the C++ Native codebase.
+- Additionally, we were forbidden to use GPU, but we were tasked with reducing inference time by almost half, while maintaing the accuracy.
+
+**What I did?**
+
+- Legacy Cleanup:
+  - At first we thought of reading the legacy codebase (which was too much complex due to extreme post-processing). The team was handling image cropping as an object detection task. More speficifically a salient object detection task.
+  - We deligiently looked through the codebase to find scopes of optimizations, and we actually found many. We found that there were redundant processing and transformation of input and output image buffers. This might have been added to the codebase due to strict release timelines, and gradual additions of sphegetti code. We took pains to remove all that crap.
+  - Just doing so brought down the overall inference time per image from 102 ms to around 34 ms (68% reduction).
+- Architecture Changes:
+  - I implemented the code changes from SNAP to direct reliance on Google's tensorflowlite libraries.
+- Model Development:
+  - Did literature survey to get models (nanodet shufflenet) that could suit our purpose.
+  - Used existing data to do the training, evaluation, model conversion (TFLITE and FP32 and INT8 dynamic range quantization), and final deploying to on-device.
+- Lottie Animation:
+  - Additional requirement came from HQ that a separate solution (called Story Service - which is responsible for gallery story/memory creation) wants to use Lottie Animation for Recap feature. This required implementation of additional JNI APIs to our legacy image cropper solution, while keeping the soul of the existing codebase same (to avoid problems in other downstream solutions which might be using our solution APIs)
+  - Did all that in record time, before the Fold-and-Flip launch.
+
+
+#### Refined Explanation
+
+- [SDE] Reviving an Abandoned Legacy System
+  - [Problem]
+    - The project had been inactive for nearly 2 years.
+    - The original authors had already left the team.
+    - Existing ownership continuity was weak, and the codebase was difficult to understand due to lack of updated documentation.
+    - New requirements required major modifications on top of this legacy system.
+  - [Solution]
+    - Took knowledge transfer from second-generation maintainers.
+    - Carefully documented the inherited architecture and pipeline behavior.
+    - Built a working understanding of the complete inference and post-processing flow before introducing changes.
+
+- [SDE] Legacy Code Cleanup & Performance Optimization
+  - [Problem]
+    - The legacy codebase had accumulated several redundant processing steps over time.
+    - Multiple unnecessary image buffer transformations and repeated post-processing passes increased execution complexity.
+    - These inefficiencies significantly impacted runtime performance.
+  - [Solution]
+    - Conducted detailed code-path analysis and profiling.
+    - Identified redundant preprocessing, post-processing, and buffer transformations.
+    - Simplified the execution pipeline while preserving output behavior.
+    - Removed unused and duplicated code paths.
+  - [Impact]
+    - Reduced per-image processing latency from: 102 ms → 34 ms. Achieved approximately 68% latency reduction.
+- [SDE] Inference Engine Migration (SNAP → TensorFlow Lite)
+  - [Problem]
+    - The legacy system depended on Samsung’s internal SNAP inference layer.
+    - Due to organizational restructuring, the project had to remove this dependency entirely.
+    - This introduced major architectural challenges:
+    - direct model loading
+    - tensor memory management
+    - inference lifecycle ownership
+  - [Solution]
+    - Replaced SNAP dependency with direct TensorFlow Lite integration in native C++.
+    - Implemented model loading, tensor preparation, and inference execution pipelines.
+    - Preserved compatibility with existing preprocessing and post-processing modules.
+- [SDE] API Stability During Feature Expansion
+  - [Problem]
+    - A downstream Story Service introduced a new requirement for Lottie-based recap generation.
+    - This required exposing new JNI APIs from the native cropper solution.
+    - Existing downstream consumers depended on stable APIs, so changes risked regressions.
+  - [Solution]
+    - Designed and implemented additional JNI APIs for the new use case.
+    - Preserved backward compatibility for existing API consumers.
+    - Isolated new functionality to minimize disruption to legacy integrations.
+
+- [ML] Lightweight Model Selection for Edge Deployment
+  - [Problem]
+    - New requirements demanded: CPU-only execution, lower latency, reduced memory footprint, maintained cropping accuracy
+  - [Solution]
+    - Conducted literature survey on lightweight detection architectures.
+    - Evaluated models such as: NanoDet ShuffleNet
+    - Benchmarked tradeoffs between accuracy, latency, and model size.
+- Model Compression and Deployment Optimization
+  - [Problem]
+    - FP32 models were too expensive under CPU-only constraints.
+    - The challenge was reducing inference cost without significantly degrading crop quality.
+  - [Solution]
+    - Converted trained models to: TensorFlow Lite FP32, INT8 dynamic-range quantized variants
+    - Benchmarked deployment tradeoffs and selected the most efficient variant.
+
+In Short
+
+The hardest part of this project was modernizing a dormant legacy vision system while meeting aggressive performance and architectural constraints. We had to remove dependency on an internal inference abstraction layer, migrate to direct TensorFlow Lite execution, optimize the codebase for CPU-only deployment, and significantly reduce latency—all while maintaining accuracy and preserving compatibility for multiple downstream consumers. Much of the work involved reverse-engineering legacy behavior, cleaning accumulated technical debt, and carefully balancing performance, maintainability, and product stability.
 
 ## VLM & Adaptor Finetuning | Gallery Search - Galaxy S26
 
