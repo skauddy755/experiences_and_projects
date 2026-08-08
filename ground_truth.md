@@ -474,13 +474,22 @@ The hardest part of this project was modernizing a dormant legacy vision system 
 ## VLM & Adaptor Finetuning | Gallery Search - Galaxy S26
 
 
+# Publications & Mentorship
 
-## ADORE Paper and ICASSP 2026 Presentation
+## ADORE | ICASSP 2026
 
+- Co-authored **ADORE: Asymmetric Relational Distillation with Reranking for Instance Level Image Retrieval**, an instance-level image retrieval framework designed to achieve an accuracy–efficiency trade-off for resource-constrained devices.
+- Contributed primarily to **experimentation, training/debugging, and ablation studies**, helping validate the proposed knowledge-distillation and asymmetric re-ranking components.
+- Worked on identifying and resolving **training-related bugs** during experimentation and validating experimental results across different configurations.
+- Contributed to the **final paper writing and refinement**, helping consolidate experimental findings and technical discussions.
+- Took significant responsibility for the **ICASSP 2026 presentation**, including preparation of the final presentation deck and presenting the work at the conference.
+- The paper evaluates the proposed approach on established instance-retrieval benchmarks including **ROxford5k and RParis6k** and reports improvements over prior asymmetric retrieval/reranking approaches. :contentReference[oaicite:0]{index=0}
 
+## Mentorship | 2-Month Intern – Screenshot Classifier
 
-## 2M Internship Mentorship
-
-
-
-
+- Mentored a **2-month intern** working on an on-device screenshot classification project, providing technical direction throughout the internship.
+- Designed and structured the **experimentation roadmap**, breaking the project into actionable experiments and defining the sequence in which they should be performed.
+- Guided the intern in developing practical engineering skills beyond ML experimentation, including understanding an existing codebase, debugging, evaluation, and working within real-world software constraints.
+- Helped bridge the gap between **academic/project-level knowledge and production engineering**, introducing considerations such as requirements, implementation constraints, evaluation, and practical trade-offs.
+- Reviewed and guided the intern's technical presentations and progress updates, ensuring that the work and experimental findings were clearly communicated to managers and the internship evaluation panel.
+- Took responsibility for the intern's overall technical growth and project direction, adapting the mentoring approach based on progress and experimental outcomes.
